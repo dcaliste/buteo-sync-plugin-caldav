@@ -92,7 +92,10 @@ void Request::slotSslErrors(QList<QSslError> errors)
         qCDebug(lcDav) << "Ignoring SSL error response";
         reply->ignoreSslErrors(errors);
     } else {
-        qCWarning(lcDav) << command() << "request received SSL error response!";
+        qCWarning(lcDav) << command() << "request received SSL errors:";
+        for (const QSslError &error : errors) {
+            qCWarning(lcDav) << error.errorString();
+        }
     }
 }
 
