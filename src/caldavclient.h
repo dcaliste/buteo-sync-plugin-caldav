@@ -45,8 +45,6 @@
 
 #include <Accounts/Manager>
 
-#include <sailfishkeyprovider_processmutex.h>
-
 class QNetworkAccessManager;
 class Request;
 
@@ -165,7 +163,6 @@ private:
 
     void setCredentialsNeedUpdate();
 
-    mutable QScopedPointer<Sailfish::KeyProvider::ProcessMutex> mProcessMutex;
     QList<NotebookSyncAgent *> mNotebookSyncAgents;
     Accounts::Manager* mManager;
     QSharedPointer<Accounts::AccountService> mService;

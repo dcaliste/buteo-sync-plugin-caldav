@@ -25,6 +25,7 @@
 #include "caldavclient.h"
 #include "notebooksyncagent.h"
 
+#include <sailfishkeyprovider_processmutex.h>
 #include <sailfishkeyprovider_iniparser.h>
 
 #include <extendedcalendar.h>
@@ -85,6 +86,7 @@ bool CalDavClient::init()
     FUNCTION_CALL_TRACE(lcCalDavTrace);
 
     if (initConfig()) {
+        cleanSyncRequired();
         return true;
     } else {
         // Uninitialize everything that was initialized before failure.
@@ -176,13 +178,11 @@ bool CalDavClient::cleanSyncRequired()
 {
     static const QByteArray iniFileDir = cleanSyncMarkersFileDir.toUtf8();
     static const QByteArray iniFile = cleanSyncMarkersFile.toUtf8();
+    Sailfish::KeyProvider::ProcessMutex processMutex(iniFile.constData());
 
     // multiple CalDavClient processes might be spawned (e.g. sync with different accounts)
     // so use a process mutex to ensure that only one will access the clean sync marker file at any time.
-    if (!mProcessMutex) {
-        mProcessMutex.reset(new Sailfish::KeyProvider::ProcessMutex(iniFile.constData()));
-    }
-    mProcessMutex->lock();
+    processMutex.lock();
 
     char *cleaned_value = SailfishKeyProvider_ini_read(
             iniFile.constData(),
@@ -253,11 +253,11 @@ bool CalDavClient::cleanSyncRequired()
 
         // finished; return true because this will be a clean sync.
         qCWarning(lcCalDav) << "Finished pre-sync cleanup with caldav account" << mService->account()->id();
-        mProcessMutex->unlock();
+        processMutex.unlock();
         return true;
     }
 
-    mProcessMutex->unlock();
+    processMutex.unlock();
     return false;
 }
 
@@ -642,8 +642,6 @@ void CalDavClient::syncCalendars(const QList<Buteo::Dav::CalendarInfo> &remoteCa
         return;
     }
     calendar->setUpdateLastModifiedOnChange(false);
-
-    cleanSyncRequired();
 
     QDateTime fromDateTime;
     QDateTime toDateTime;
