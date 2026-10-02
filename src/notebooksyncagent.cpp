@@ -968,11 +968,6 @@ void NotebookSyncAgent::setFatal(const QString &uri, const QByteArray &errorData
     abort();
 }
 
-void NotebookSyncAgent::finalize()
-{
-    NOTEBOOK_FUNCTION_CALL_TRACE;
-}
-
 bool NotebookSyncAgent::isFinished() const
 {
     return !mPendingActions;
