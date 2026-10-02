@@ -487,18 +487,6 @@ bool CalDavClient::initConfig()
         return false;
     }
 
-    Accounts::AccountService global(mService->account(), Accounts::Service());
-    const QString serverAddress = mService->value("server_address",
-                                                  global.value("server_address")).toString();
-    if (serverAddress.isEmpty()) {
-        qCWarning(lcCalDav) << "remote_address not found in service settings";
-        return false;
-    }
-
-    mDAV = new Buteo::Dav::Client(serverAddress);
-    mDAV->setIgnoreSSLErrors(mService->value("ignore_ssl_errors",
-                                             global.value("ignore_ssl_errors")).toBool());
-
     mAuth = new AuthHandler(mService, this);
     if (!mAuth->init()) {
         return false;
@@ -586,6 +574,20 @@ void CalDavClient::start()
 {
     FUNCTION_CALL_TRACE(lcCalDavTrace);
 
+    Accounts::AccountService global(mService->account(), Accounts::Service());
+    const QString serverAddress = mService->value("server_address",
+                                                  global.value("server_address")).toString();
+    if (serverAddress.isEmpty()) {
+        qCWarning(lcCalDav) << "server_address not found in service settings";
+        syncFinished(Buteo::SyncResults::INTERNAL_ERROR,
+                     QLatin1String("no server address for CalDAV service"));
+        return;
+    }
+
+    mDAV = new Buteo::Dav::Client(serverAddress, this);
+    mDAV->setIgnoreSSLErrors(mService->value("ignore_ssl_errors",
+                                             global.value("ignore_ssl_errors")).toBool());
+
     if (!mAuth->username().isEmpty() && !mAuth->password().isEmpty()) {
         mDAV->setAuthLogin(mAuth->username(), mAuth->password());
     }
@@ -597,7 +599,6 @@ void CalDavClient::start()
                 // Ignore user principal errors, continue anyhow.
                 listCalendars(mDAV->servicePath(service));
             });
-    Accounts::AccountService global(mService->account(), Accounts::Service());
     const QString davPath = mService->value("webdav_path",
                                             global.value("webdav_path")).toString();
     mDAV->requestUserPrincipalAndServiceData(service, davPath);
