@@ -170,8 +170,6 @@ private:
     Accounts::Manager* mManager;
     QSharedPointer<Accounts::AccountService> mService;
     AuthHandler* mAuth;
-    mKCal::ExtendedCalendar::Ptr mCalendar;
-    mKCal::ExtendedStorage::Ptr mStorage;
     Buteo::SyncResults mResults;
     Sync::SyncStatus mSyncStatus;
     Buteo::SyncProfile::SyncDirection mSyncDirection;
