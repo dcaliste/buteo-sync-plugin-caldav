@@ -517,7 +517,10 @@ void CalDavClient::syncFinished(Buteo::SyncResults::MinorCode minorErrorCode,
 {
     FUNCTION_CALL_TRACE(lcCalDavTrace);
 
-    clearAgents();
+    for (int i=0; i<mNotebookSyncAgents.count(); i++) {
+        mNotebookSyncAgents[i]->deleteLater();
+    }
+    mNotebookSyncAgents.clear();
 
     if (minorErrorCode == Buteo::SyncResults::NO_ERROR
         || minorErrorCode == Buteo::SyncResults::ITEM_FAILURES) {
@@ -698,16 +701,6 @@ void CalDavClient::syncCalendars(const QList<Buteo::Dav::CalendarInfo> &remoteCa
     }
 }
 
-void CalDavClient::clearAgents()
-{
-    FUNCTION_CALL_TRACE(lcCalDavTrace);
-
-    for (int i=0; i<mNotebookSyncAgents.count(); i++) {
-        mNotebookSyncAgents[i]->deleteLater();
-    }
-    mNotebookSyncAgents.clear();
-}
-
 void CalDavClient::notebookSyncFinished()
 {
     FUNCTION_CALL_TRACE(lcCalDavTrace);
@@ -747,7 +740,6 @@ void CalDavClient::notebookSyncFinished()
             } else {
                 mResults.addTargetResults(mNotebookSyncAgents[i]->result());
             }
-            mNotebookSyncAgents[i]->finalize();
         }
         removeAccountCalendars(deletedNotebooks);
         if (hasFatalError) {

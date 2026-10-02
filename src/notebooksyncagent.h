@@ -66,7 +66,6 @@ public:
     void abort();
     bool applyRemoteChanges();
     Buteo::TargetResults result() const;
-    void finalize();
 
     bool isFinished() const;
     bool isCompleted() const;

@@ -146,7 +146,6 @@ private:
     bool initConfig();
     void closeConfig();
     void syncFinished(Buteo::SyncResults::MinorCode minorErrorCode, const QString &message = QString());
-    void clearAgents();
     void deleteNotebooksForAccount(int accountId, mKCal::ExtendedCalendar::Ptr calendar, mKCal::ExtendedStorage::Ptr storage);
     bool cleanSyncRequired();
     void getSyncDateRange(const QDateTime &sourceDate, QDateTime *fromDateTime, QDateTime *toDateTime);
