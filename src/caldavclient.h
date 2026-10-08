@@ -36,8 +36,6 @@
 #include <davclient.h>
 #include <davtypes.h>
 
-#include <extendedstorage.h>
-
 #include <ClientPlugin.h>
 #include <SyncResults.h>
 #include <SyncCommonDefs.h>
@@ -146,7 +144,7 @@ private:
     bool initConfig();
     void closeConfig();
     void syncFinished(Buteo::SyncResults::MinorCode minorErrorCode, const QString &message = QString());
-    void deleteNotebooksForAccount(int accountId, mKCal::ExtendedCalendar::Ptr calendar, mKCal::ExtendedStorage::Ptr storage);
+    void deleteNotebooksForAccount(int accountId);
     bool cleanSyncRequired();
     void getSyncDateRange(const QDateTime &sourceDate, QDateTime *fromDateTime, QDateTime *toDateTime);
     QList<Buteo::Dav::CalendarInfo> loadAccountCalendars() const;
@@ -159,8 +157,6 @@ private:
 
     Buteo::SyncProfile::SyncDirection syncDirection();
     Buteo::SyncProfile::ConflictResolutionPolicy conflictResolutionPolicy();
-
-    void setCredentialsNeedUpdate();
 
     QList<NotebookSyncAgent *> mNotebookSyncAgents;
     Accounts::Manager* mManager;
