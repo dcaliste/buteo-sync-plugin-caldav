@@ -32,16 +32,22 @@
 
 #define PROP_URI "uri"
 
-static bool readResourceType(QXmlStreamReader *reader, bool *isCalendar)
+static bool readResourceType(QXmlStreamReader *reader, const QString &type, bool *isType)
 {
     /* e.g.:
         <D:resourcetype><C:calendar xmlns:C=\"urn:ietf:params:xml:ns:caldav\"/><D:collection/></D:resourcetype>
     */
+    bool isCollection = false;
+    *isType = type.isEmpty();
     for (; !reader->atEnd(); reader->readNext()) {
-        if (reader->name() == "calendar") {
-            *isCalendar = true;
+        if (!type.isEmpty() && reader->name() == type) {
+            *isType = true;
+        }
+        if (reader->name() == "collection") {
+            isCollection = true;
         }
         if (reader->name() == "resourcetype" && reader->isEndElement()) {
+            *isType = isCollection && *isType;
             return true;
         }
     }
@@ -157,7 +163,7 @@ static bool readCalendarProp(QXmlStreamReader *reader, bool *isCalendar,
                 }
             }
         } else if (reader->name() == "resourcetype" && reader->isStartElement()) {
-            if (!readResourceType(reader, isCalendar)) {
+            if (!readResourceType(reader, QStringLiteral("calendar"), isCalendar)) {
                 return false;
             }
         } else if (reader->name() == "current-user-privilege-set" && reader->isStartElement()) {
