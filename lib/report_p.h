@@ -40,12 +40,12 @@ class Report : public Request
 public:
     Report(QNetworkAccessManager *manager, Settings *settings, QObject *parent = 0);
 
-    void getAllEvents(const QString &remoteCalendarPath,
-                      const QDateTime &fromDateTime = QDateTime(),
-                      const QDateTime &toDateTime = QDateTime());
-    void getAllETags(const QString &remoteCalendarPath,
-                     const QDateTime &fromDateTime = QDateTime(),
-                     const QDateTime &toDateTime = QDateTime());
+    void getEventsInRange(const QString &remoteCalendarPath,
+                          const QDateTime &fromDateTime = QDateTime(),
+                          const QDateTime &toDateTime = QDateTime());
+    void getETagsInRange(const QString &remoteCalendarPath,
+                         const QDateTime &fromDateTime = QDateTime(),
+                         const QDateTime &toDateTime = QDateTime());
     void multiGetEvents(const QString &remoteCalendarPath, const QStringList &eventHrefList);
 
     const QList<Buteo::Dav::Resource>& response() const;

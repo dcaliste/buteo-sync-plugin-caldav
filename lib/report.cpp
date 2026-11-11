@@ -67,16 +67,16 @@ Report::Report(QNetworkAccessManager *manager, Settings *settings, QObject *pare
 {
 }
 
-void Report::getAllEvents(const QString &remoteCalendarPath,
-                          const QDateTime &fromDateTime,
-                          const QDateTime &toDateTime)
+void Report::getEventsInRange(const QString &remoteCalendarPath,
+                              const QDateTime &fromDateTime,
+                              const QDateTime &toDateTime)
 {
     sendCalendarQuery(remoteCalendarPath, fromDateTime, toDateTime, true);
 }
 
-void Report::getAllETags(const QString &remoteCalendarPath,
-                         const QDateTime &fromDateTime,
-                         const QDateTime &toDateTime)
+void Report::getETagsInRange(const QString &remoteCalendarPath,
+                             const QDateTime &fromDateTime,
+                             const QDateTime &toDateTime)
 {
     sendCalendarQuery(remoteCalendarPath, fromDateTime, toDateTime, false);
 }

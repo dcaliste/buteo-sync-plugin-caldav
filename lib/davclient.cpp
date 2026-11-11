@@ -410,7 +410,7 @@ void Buteo::Dav::Client::getCalendarEtags(const QString &path,
                 }
                 emit calendarEtagsFinished(reply(*report, uri), etags);
             });
-    report->getAllETags(path, from, to);
+    report->getETagsInRange(path, from, to);
 }
 
 /*!
@@ -430,7 +430,7 @@ void Buteo::Dav::Client::getCalendarResources(const QString &path,
 
                 emit calendarResourcesFinished(reply(*report, uri), report->response());
             });
-    report->getAllEvents(path, from, to);
+    report->getEventsInRange(path, from, to);
 }
 
 /*!
