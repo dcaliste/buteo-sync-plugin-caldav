@@ -86,6 +86,13 @@ public:
     void getCalendarResources(const QString &path, const QStringList &uids);
     void sendCalendarResource(const QString &path, const QString &data, const QString &etag = QString());
 
+    // Calendar specific API (CardDAV protocol).
+    void requestAddressbooks(const QString &path = QString());
+    QList<AddressbookInfo> addressbooks() const;
+
+    void getAddressbookEtags(const QString &path);
+
+    // Generic DAV API.
     void deleteResource(const QString &path);
 
 signals:
@@ -95,6 +102,8 @@ signals:
     void calendarEtagsFinished(const Reply &reply, const QHash<QString, QString> &etags);
     void calendarResourcesFinished(const Reply &reply, const QList<Resource> &resources);
     void sendCalendarFinished(const Reply &reply, const QString &etag);
+    void addressbookListFinished(const Reply &reply);
+    void addressbookEtagsFinished(const Reply &reply, const QHash<QString, QString> &etags);
     void deleteFinished(const Reply &reply);
 
 private:

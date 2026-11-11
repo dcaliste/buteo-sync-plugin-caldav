@@ -47,6 +47,7 @@ public:
                          const QDateTime &fromDateTime = QDateTime(),
                          const QDateTime &toDateTime = QDateTime());
     void multiGetEvents(const QString &remoteCalendarPath, const QStringList &eventHrefList);
+    void getAllETags(const QString &remotePath);
 
     const QList<Buteo::Dav::Resource>& response() const;
 
@@ -59,7 +60,7 @@ private:
                            const QDateTime &fromDateTime,
                            const QDateTime &toDateTime,
                            bool getCalendarData);
-    QString mRemoteCalendarPath;
+    void sendAddressbookQuery(const QString &remotePath);
     QList<Buteo::Dav::Resource> mResponse;
 };
 

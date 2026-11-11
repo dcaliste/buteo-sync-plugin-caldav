@@ -46,13 +46,24 @@ enum Privilege {
 Q_DECLARE_FLAGS(Privileges, Privilege)
 Q_DECLARE_OPERATORS_FOR_FLAGS(Privileges)
 
-struct DAV_EXPORT CalendarInfo {
+struct DAV_EXPORT Collection {
     QString remotePath;
     QString displayName;
-    QString description;
-    QString color;
     QString userPrincipal;
     Privileges privileges = READ | WRITE;
+    QString syncToken;
+
+    Collection() {}
+    Collection(const QString &path, const QString &name,
+               const QString &principal = QString(),
+               Privileges privileges = READ | WRITE)
+    : remotePath(path), displayName(name)
+    , userPrincipal(principal), privileges(privileges) {}
+};
+
+struct DAV_EXPORT CalendarInfo: public Collection {
+    QString description;
+    QString color;
     bool allowEvents = true;
     bool allowTodos = true;
     bool allowJournals = true;
@@ -62,8 +73,8 @@ struct DAV_EXPORT CalendarInfo {
                  const QString &description, const QString &color,
                  const QString &principal = QString(),
                  Privileges privileges = READ | WRITE)
-        : remotePath(path), displayName(name), description(description)
-        , color(color), userPrincipal(principal), privileges(privileges) {}
+        : Collection(path, name, principal, privileges)
+        , description(description), color(color) {}
 
     bool operator==(const CalendarInfo &other) const
     {
@@ -77,6 +88,9 @@ struct DAV_EXPORT CalendarInfo {
             && allowTodos == other.allowTodos
             && allowJournals == other.allowJournals;
     }
+};
+
+struct DAV_EXPORT AddressbookInfo: public Collection {
 };
 
 struct DAV_EXPORT Resource {

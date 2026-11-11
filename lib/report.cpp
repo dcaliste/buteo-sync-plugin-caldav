@@ -126,10 +126,25 @@ void Report::multiGetEvents(const QString &remoteCalendarPath, const QStringList
     sendRequest(remoteCalendarPath, requestData);
 }
 
+void Report::getAllETags(const QString &remotePath)
+{
+    sendAddressbookQuery(remotePath);
+}
+
+void Report::sendAddressbookQuery(const QString &remotePath)
+{
+    QByteArray requestData =
+            "<c:addressbook-query xmlns:d=\"DAV:\" xmlns:c=\"urn:ietf:params:xml:ns:carddav\">"
+                "<d:prop>"
+                    "<d:getetag />"
+                "</d:prop>"
+                "<c:filter />"
+            "</c:addressbook-query>";
+    sendRequest(remotePath, requestData);
+}
+
 void Report::sendRequest(const QString &remoteCalendarPath, const QByteArray &requestData)
 {
-    mRemoteCalendarPath = remoteCalendarPath;
-
     QNetworkRequest request;
     prepareRequest(&request, remoteCalendarPath);
     request.setRawHeader("Depth", "1");

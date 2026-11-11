@@ -110,6 +110,12 @@ public:
         mParser.addOption(QCommandLineOption(QStringList() << "t" << "to",
                                              "provide an ending date for range inquiries", "date"));
 
+        mParser.addOption(QCommandLineOption(QStringList()  << "list-addressbooks",
+                                             "list available addressbooks for the auhenticated user.", "path"));
+
+        mParser.addOption(QCommandLineOption(QStringList() << "list-addressbook-etags",
+                                             "list etags of all contacts from an addressbook.", "path"));
+
         mParser.addOption(QCommandLineOption(QStringList() << "p" << "put",
                                              "send a resource on server (etag should match to update, and left empty when new).", "path:file:etag"));
 
@@ -185,6 +191,12 @@ public:
             } else {
                 mDAV->getCalendarResources(mParser.value("get-calendar-resources"), mParser.values("i"));
             }
+        } else if (mParser.isSet("list-addressbooks") && except != "list-addressbooks") {
+            connect(mDAV, &Buteo::Dav::Client::addressbookListFinished, this, &DavCli::onAddressbookListFinished);
+            mDAV->requestAddressbooks(mParser.value("list-addressbooks"));
+        } else if (mParser.isSet("list-addressbook-etags") && except != "list-addressbook-etags") {
+            connect(mDAV, &Buteo::Dav::Client::addressbookEtagsFinished, this, &DavCli::onAddressbookEtagsFinished);
+            mDAV->getAddressbookEtags(mParser.value("list-addressbook-etags"));
         } else if (mParser.isSet("p") && except != "p") {
             connect(mDAV, &Buteo::Dav::Client::sendCalendarFinished, this, &DavCli::onSendCalendarFinished);
             const QStringList parts = mParser.value("p").split(":");
@@ -247,6 +259,7 @@ public:
                 qInfo() << "    allow events:" << (cal.allowEvents ? "yes" : "no");
                 qInfo() << "    allow todos:" << (cal.allowTodos ? "yes" : "no");
                 qInfo() << "    allow journals:" << (cal.allowJournals ? "yes" : "no");
+                qInfo() << "    sync-token:" << cal.syncToken;
             }
         }
 
@@ -302,6 +315,43 @@ public:
         }
 
         execute("p");
+    }
+
+    void onAddressbookListFinished(const Buteo::Dav::Client::Reply &reply)
+    {
+        if (reply.hasError()) {
+            qWarning() << reply.errorMessage;
+            qWarning() << reply.errorData;
+        } else {
+            qInfo() << "  addressbooks:";
+            for (const Buteo::Dav::AddressbookInfo &book : mDAV->addressbooks()) {
+                qInfo() << "  - label:" << book.displayName;
+                qInfo() << "    path:" << book.remotePath;
+                qInfo() << "    user:" << book.userPrincipal;
+                qInfo().noquote() << "    privileges:" << privilegesToString(book.privileges);
+                qInfo() << "    sync-token:" << book.syncToken;
+            }
+        }
+
+        execute("list-addressbooks");
+    }
+
+    void onAddressbookEtagsFinished(const Buteo::Dav::Client::Reply &reply,
+                                    const QHash<QString, QString> &etags)
+    {
+        if (reply.hasError()) {
+            qWarning() << reply.errorMessage;
+            qWarning() << reply.errorData;
+        } else {
+            qInfo() << "  etags:";
+            for (QHash<QString, QString>::ConstIterator it = etags.constBegin();
+                 it != etags.constEnd(); it++) {
+                qInfo() << "  - href:" << it.key();
+                qInfo() << "    etag:" << it.value();
+            }
+        }
+
+        execute("list-addressbook-etags");
     }
 
     void onDeleteFinished(const Buteo::Dav::Client::Reply &reply)

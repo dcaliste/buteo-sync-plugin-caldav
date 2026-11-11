@@ -100,6 +100,7 @@ public:
     QString m_userPrincipal;
     QMap<QString, PropFind::UserAddressSet> m_serviceData;
     QList<Buteo::Dav::CalendarInfo> m_calendars;
+    QList<Buteo::Dav::AddressbookInfo> m_addressbooks;
 };
 
 /*!
@@ -473,6 +474,40 @@ void Buteo::Dav::Client::sendCalendarResource(const QString &path, const QString
                 emit sendCalendarFinished(reply(*put, uri), put->updatedETag(uri));
             });
     put->sendIcalData(path, data, etag);
+}
+
+void Buteo::Dav::Client::requestAddressbooks(const QString &path)
+{
+    d->m_addressbooks.clear();
+    PropFind *bookRequest = new PropFind(d->m_networkManager, &d->m_settings, this);
+    connect(bookRequest, &Request::finished, this,
+            [this, bookRequest] (const QString &uri) {
+        bookRequest->deleteLater();
+
+        if (!bookRequest->hasError()) {
+            d->m_addressbooks = bookRequest->addressbooks();
+        }
+        emit addressbookListFinished(reply(*bookRequest, uri));
+    });
+    bookRequest->listAddressbooks(path.isEmpty() ? servicePath(QStringLiteral("carddav")) : path);
+}
+
+QList<Buteo::Dav::AddressbookInfo> Buteo::Dav::Client::addressbooks() const
+{
+    return d->m_addressbooks;
+}
+
+void Buteo::Dav::Client::getAddressbookEtags(const QString &path)
+{
+    PropFind *etagRequest = new PropFind(d->m_networkManager, &d->m_settings);
+    connect(etagRequest, &Report::finished, this,
+            [this, etagRequest] (const QString &uri) {
+                etagRequest->deleteLater();
+
+                emit addressbookEtagsFinished(reply(*etagRequest, uri),
+                                              etagRequest->etags());
+            });
+    etagRequest->getAllEtags(path);
 }
 
 /*!

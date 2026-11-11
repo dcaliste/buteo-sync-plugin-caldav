@@ -56,6 +56,9 @@ public:
     void getAllEtags(const QString &remotePath);
     const QHash<QString, QString>& etags() const;
 
+    void listAddressbooks(const QString &addressbooksPath);
+    const QList<Buteo::Dav::AddressbookInfo>& addressbooks() const;
+
 protected:
     virtual void handleReply(QNetworkReply *reply);
 
@@ -64,7 +67,8 @@ private:
         UserPrincipal,
         UserAddresses,
         ListCalendars,
-        GetAllEtags
+        GetAllEtags,
+        ListAddressbooks
     };
 
     void sendRequest(const QString &remotePath, const QByteArray &requestData, PropFindRequestType reqType);
@@ -72,8 +76,10 @@ private:
     bool parseUserAddressSetResponse(const QByteArray &data);
     bool parseCalendarResponse(const QByteArray &data);
     bool parseEtagResponse(const QByteArray &data);
+    bool parseAddressbookResponse(const QByteArray &data);
 
     QList<Buteo::Dav::CalendarInfo> mCalendars;
+    QList<Buteo::Dav::AddressbookInfo> mAddressbooks;
     QString mUserPrincipal;
     QMap<QString, UserAddressSet> mUserAddressSets;
     QHash<QString, QString> mEtags;
