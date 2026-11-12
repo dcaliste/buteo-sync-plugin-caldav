@@ -53,6 +53,9 @@ public:
     void listCalendars(const QString &calendarsPath);
     const QList<Buteo::Dav::CalendarInfo>& calendars() const;
 
+    void getAllEtags(const QString &remotePath);
+    const QHash<QString, QString>& etags() const;
+
 protected:
     virtual void handleReply(QNetworkReply *reply);
 
@@ -60,17 +63,20 @@ private:
     enum PropFindRequestType {
         UserPrincipal,
         UserAddresses,
-        ListCalendars
+        ListCalendars,
+        GetAllEtags
     };
 
     void sendRequest(const QString &remotePath, const QByteArray &requestData, PropFindRequestType reqType);
     bool parseUserPrincipalResponse(const QByteArray &data);
     bool parseUserAddressSetResponse(const QByteArray &data);
     bool parseCalendarResponse(const QByteArray &data);
+    bool parseEtagResponse(const QByteArray &data);
 
     QList<Buteo::Dav::CalendarInfo> mCalendars;
     QString mUserPrincipal;
     QMap<QString, UserAddressSet> mUserAddressSets;
+    QHash<QString, QString> mEtags;
     PropFindRequestType mPropFindRequestType = UserPrincipal;
 
     friend class tst_Propfind;

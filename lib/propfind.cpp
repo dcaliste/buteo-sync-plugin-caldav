@@ -398,6 +398,42 @@ static bool readUserPrincipalResponse(QXmlStreamReader *reader, QString *userPri
     return false;
 }
 
+
+static bool readEtagResponse(QXmlStreamReader *reader, QHash<QString, QString> *etags)
+{
+    /* expect a response like:
+        <?xml version='1.0' encoding='utf-8'?>
+        <D:multistatus xmlns:D="DAV:">
+            <D:response>
+                <href xmlns="DAV:">/</href>
+                <D:propstat>
+                    <D:prop>
+                        <D:getetag>"abcdef"</D:getetag>
+                    </D:prop>
+                    <status xmlns="DAV:">HTTP/1.1 200 OK</status>
+                </D:propstat>
+            </D:response>
+        </D:multistatus>
+    */
+
+    QString href, etag;
+    for (; !reader->atEnd(); reader->readNext()) {
+        if (reader->name() == "getetag" && reader->isStartElement()) {
+            etag = QUrl::fromPercentEncoding(reader->readElementText().toUtf8());
+        } else if (reader->name() == "href" && reader->isStartElement()) {
+            href = QUrl::fromPercentEncoding(reader->readElementText().toUtf8());
+        } else if (reader->name() == "response"
+                   && reader->isEndElement()) {
+            if (!href.isEmpty() && !etag.isEmpty()) {
+                etags->insert(href, etag);
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 bool PropFind::parseCalendarResponse(const QByteArray &data)
 {
     if (data.isNull() || data.isEmpty()) {
@@ -441,6 +477,22 @@ bool PropFind::parseUserAddressSetResponse(const QByteArray &data)
     for (; !reader.atEnd(); reader.readNext()) {
         if (reader.name() == "response" && reader.isStartElement()
                 && !readUserAddressSetResponse(&reader, &mUserAddressSets)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool PropFind::parseEtagResponse(const QByteArray &data)
+{
+    if (data.isNull() || data.isEmpty()) {
+        return false;
+    }
+    QXmlStreamReader reader(data);
+    reader.setNamespaceProcessing(true);
+    for (; !reader.atEnd(); reader.readNext()) {
+        if (reader.name() == "response" && reader.isStartElement()
+                && !readEtagResponse(&reader, &mEtags)) {
             return false;
         }
     }
@@ -500,13 +552,26 @@ void PropFind::listCurrentUserPrincipal(const QString &rootPath)
                 requestData, UserPrincipal);
 }
 
+void PropFind::getAllEtags(const QString &remotePath)
+{
+    const QByteArray requestData(QByteArrayLiteral(
+            "<d:propfind xmlns:d=\"DAV:\">"
+            "  <d:prop>"
+            "    <d:getetag />"
+            "  </d:prop>"
+            "</d:propfind>"
+    ));
+    mEtags.clear();
+    sendRequest(remotePath, requestData, GetAllEtags);
+}
+
 void PropFind::sendRequest(const QString &remotePath, const QByteArray &requestData, PropFindRequestType reqType)
 {
     mPropFindRequestType = reqType;
 
     QNetworkRequest request;
     prepareRequest(&request, remotePath);
-    if (reqType == ListCalendars)
+    if (reqType == ListCalendars || reqType == GetAllEtags)
         request.setRawHeader("Depth", "1");
     else
         request.setRawHeader("Depth", "0");
@@ -566,6 +631,9 @@ void PropFind::handleReply(QNetworkReply *reply)
     case (ListCalendars):
         success = parseCalendarResponse(data);
         break;
+    case (GetAllEtags):
+        success = parseEtagResponse(data);
+        break;
     }
 
     if (success) {
@@ -588,4 +656,9 @@ QString PropFind::userPrincipal() const
 const QMap<QString, PropFind::UserAddressSet>& PropFind::userAddressSets() const
 {
     return mUserAddressSets;
+}
+
+const QHash<QString, QString>& PropFind::etags() const
+{
+    return mEtags;
 }
